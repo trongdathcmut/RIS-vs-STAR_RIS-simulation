@@ -1,0 +1,48 @@
+{
+  "n": 256,
+  "fc_ghz": 3.0,
+  "pt_dbm": 30.0,
+  "bs_gain_dbi": 10.0,
+  "blockage_db": 40.0,
+  "obstacle": true,
+  "efficiency": 0.9,
+  "split": 0.5,
+  "mode": "ES",
+  "phase": "optimized",
+  "steer_deg": 0.0,
+  "bits": 0,
+  "seed": 42,
+  "geometry": {
+    "surface": [
+      60.0,
+      20.0,
+      5.0
+    ],
+    "users": {
+      "R": [
+        40.0,
+        -10.0,
+        1.5
+      ],
+      "T": [
+        90.0,
+        -10.0,
+        1.5
+      ]
+    },
+    "obstacles": [
+      {
+        "min": [
+          18.0,
+          -12.0,
+          0.0
+        ],
+        "max": [
+          24.0,
+          5.0,
+          14.0
+        ]
+      }
+    ]
+  }
+}

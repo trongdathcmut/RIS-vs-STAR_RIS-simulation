@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#F3F6FA" name="theme-color"/>
+<meta content="RIS / STAR-RIS V5 Scientific Light: mô phỏng đường truyền, beam steering và bản đồ pha bằng Python." name="description"/>
+<title>RIS / STAR-RIS V5 — Scientific Light (Clean)</title>
+<link href="style.css?v=5.1-clean" rel="stylesheet"/>
+<script defer="" src="app.js?v=5.1-clean"></script>
+</head>
+<body>
+<header class="app-header">
+<div class="brand-side">
+<a aria-label="RIS / STAR-RIS V5, về tổng quan" class="brand" href="#overview"><span aria-hidden="true" class="brandmark">◉</span><span class="brand-copy"><strong>RIS <span class="brand-slash">/</span> STAR-RIS <em>V5</em></strong></span></a>
+
+</div>
+<div class="header-right">
+
+<button aria-pressed="false" class="toolbar-btn" id="presentation" title="Phóng to khu vực mô phỏng" type="button">⛶ <span>Trình chiếu</span></button>
+<button class="toolbar-btn" id="reset" title="Khôi phục cấu hình ban đầu">↺ <span>Đặt lại</span></button>
+<button class="primary" disabled="" id="export" title="Tải dữ liệu tính toán gốc dạng JSON">↓ Xuất JSON</button>
+</div>
+</header>
+<main class="dashboard" id="overview">
+<aside aria-label="Cấu hình mô phỏng" class="sidebar">
+<div class="sidebar-heading"><div class="eyebrow">CONTROL CENTER</div><h1>Thiết lập mô phỏng</h1></div>
+<section class="control-card">
+<div class="card-heading"><span class="card-icon">▧</span><div><h2>Kịch bản</h2><p>Chọn nhanh trường hợp cần trình bày</p></div></div>
+<div aria-label="Kịch bản" class="scenario-grid" id="scenario-buttons" role="group">
+<button data-scenario="LOS" type="button"><span>⌁</span>LOS</button>
+<button data-scenario="NLOS" type="button"><span>▥</span>NLOS</button>
+<button data-scenario="RIS" type="button"><span>▤</span>NLOS + RIS</button>
+<button class="selected" data-scenario="STAR" type="button"><span>▦</span>STAR-RIS</button>
+</div>
+<p class="microcopy">Chọn preset sẽ cập nhật chế độ và vật cản, vẫn có thể tinh chỉnh phía dưới.</p>
+</section>
+<section class="control-card">
+<div class="card-heading"><span class="card-icon">◈</span><div><h2>Chế độ hoạt động</h2><p>Công nghệ bề mặt đang mô phỏng</p></div></div>
+<label for="mode">Loại bề mặt</label>
+<select id="mode"><option value="NONE">Không có bề mặt</option><option value="RIS">RIS · chỉ phản xạ</option><option selected="" value="ES">STAR-RIS · Energy Splitting (ES)</option><option value="MS">STAR-RIS · Mode Switching (MS)</option><option value="TS">STAR-RIS · Time Switching (TS)</option></select>
+<p class="hint">RIS chỉ có UE-R. STAR-RIS hỗ trợ hai phía phản xạ và truyền qua.</p>
+</section>
+<section class="control-card">
+<div class="card-heading"><span class="card-icon">▦</span><div><h2>Cấu hình RIS</h2><p>Số phần tử và cơ chế điều khiển pha</p></div></div>
+<label for="n">Số phần tử (N) <output id="n-val">256</output></label>
+<input id="n" max="1024" min="1" step="1" type="range" value="256"/>
+<div class="range-label"><span>1</span><span>Khoảng cách d = λ/2</span><span>1024</span></div>
+<div aria-label="Chọn nhanh số phần tử" class="quick"><button data-n="64">64</button><button class="active" data-n="256">256</button><button data-n="512">512</button><button data-n="1024">1024</button></div>
+<label for="phase">Cấu hình pha</label>
+<select id="phase"><option value="optimized">Pha tối ưu · theo kênh</option><option value="random">Pha ngẫu nhiên · seed 42</option><option value="zero">Tất cả pha bằng 0°</option><option value="steered">Lái beam thủ công theo góc</option></select>
+<div hidden="" id="steer-controls"><label for="steer_deg">Góc lái beam <output id="steer_deg-val">0°</output></label><input id="steer_deg" max="70" min="-70" step="1" type="range" value="0"/><div class="range-label"><span>−70°</span><span>0°</span><span>+70°</span></div><p class="hint">Góc phương vị so với pháp tuyến bề mặt. Dùng để thay đổi pha mà không cần dịch chuyển UE.</p></div>
+<label for="bits">Độ phân giải pha</label>
+<select id="bits"><option value="0">Liên tục</option><option value="1">1 bit · 2 mức</option><option value="2">2 bit · 4 mức</option><option value="3">3 bit · 8 mức</option><option value="4">4 bit · 16 mức</option></select>
+<label for="split" id="split-label">Tỷ lệ cho phía phản xạ <output id="split-val">50%</output></label>
+<input id="split" max="1" min="0" step="0.05" type="range" value="0.5"/>
+<div class="split-rail"><span>Phản xạ R</span><span>Truyền qua T</span></div><p class="hint" id="split-hint">ES: βR = 0.50 · βT = 0.50</p>
+</section>
+<section class="control-card">
+<div class="card-heading"><span class="card-icon">◎</span><div><h2>Điều khiển &amp; môi trường</h2><p>Tương tác trực tiếp trên hình mô phỏng</p></div></div>
+<label class="check"><input checked="" id="obstacle" type="checkbox"/> Sử dụng vật cản trong môi trường</label>
+<label for="blockage_db">Suy hao xuyên vật cản <output id="blockage_db-val">40 dB</output></label><input id="blockage_db" max="80" min="0" type="range" value="40"/>
+<div class="control-tools"><button id="add-obstacle" type="button">＋ Vật cản</button><button id="remove-obstacle" type="button">− Xóa vật cản</button></div>
+<p class="microcopy">Kéo UE / RIS / vật cản để đổi vị trí; kéo vùng trống để xoay, cuộn để zoom.</p>
+<details class="advanced"><summary>Thông số vô tuyến nâng cao</summary><label for="fc_ghz">Tần số sóng mang <output id="fc_ghz-val">3 GHz</output></label><input id="fc_ghz" max="6" min="1" step="0.1" type="range" value="3"/><label for="pt_dbm">Công suất phát <output id="pt_dbm-val">30 dBm</output></label><input id="pt_dbm" max="40" min="-10" type="range" value="30"/><label for="efficiency">Hiệu suất η <output id="efficiency-val">90%</output></label><input id="efficiency" max="1" min="0" step="0.05" type="range" value="0.9"/><p class="hint">Gain BS: 10 dBi · Gain UE: 0 dBi. Kênh SISO băng hẹp, không có fading ngẫu nhiên.</p></details>
+</section>
+
+</aside>
+<div class="content-grid">
+<div class="visual-column">
+<section aria-label="Không gian mô phỏng" class="visual-card">
+<div class="visual-heading"><div class="card-heading"><span class="card-icon">⬡</span><div><h2>Không gian mô phỏng</h2><p id="stage-title">BS · RIS/STAR-RIS · UE · Vật cản</p></div></div><div class="visual-actions"><span id="status" role="status">Đang tính…</span><div class="view-control"><button id="view" title="Chuyển đổi góc nhìn 2D/3D">Góc nhìn trên</button><button aria-pressed="true" id="beam-overlay" title="Bật/tắt biểu đồ beam phủ trên sơ đồ">Ẩn beam</button><button id="motion" title="Tạm dừng/chạy hiệu ứng sóng">Dừng sóng</button><button id="png" title="Lưu ảnh sơ đồ">⇩ PNG</button></div></div></div>
+<div class="scene-wrap"><canvas aria-label="Sơ đồ 3D BS, vật cản, RIS và hai UE. Có thể kéo UE, RIS và vật cản. Cuộn chuột để phóng to." id="scene"></canvas><div class="scene-top"><span id="scene-mode">STAR-RIS / ES</span><span class="scene-chip">DRAG &amp; EXPLORE</span></div><div class="scene-bottom"><div class="legend"><span style="--c:#08A4B8">BS → bề mặt</span><span style="--c:#7659D2">Phản xạ R</span><span style="--c:#EB9B2B">Truyền qua T</span><span style="--c:#718096">LOS / trực tiếp</span></div><span class="scene-hint">Kéo để di chuyển · Cuộn để zoom</span></div></div>
+
+</section>
+<section class="panel beam-panel" id="beam-panel"><div class="panel-head"><div><div class="eyebrow">ARRAY FACTOR · PYTHON</div><h3>Beam Pattern — thay đổi theo pha</h3></div><div class="beam-select"><span id="beam-active-label">Mặt cắt theo UE-R</span><select aria-label="Chọn UE xem beam" id="beam-side"><option value="R">UE-R</option><option value="T">UE-T</option></select></div></div>
+<div class="beam-layout"><div class="chart-frame"><div class="chart-title">Biểu đồ cực · Polar</div><canvas aria-label="Đồ thị polar cho hình dạng chùm sóng theo pha" id="beam-polar"></canvas><div class="beam-caption">Hình beam tương đối · 0 dB tại đỉnh</div></div><div class="chart-frame"><div class="chart-title">Đáp ứng theo góc phương vị</div><canvas aria-label="Đồ thị công suất tương đối theo góc phương vị" id="beam-pattern"></canvas><div class="beam-summary" id="beam-summary">Đang tính bằng Python…</div></div></div>
+<p class="hint">Biểu đồ lấy trực tiếp từ array factor do Python tính ở góc nâng của UE. Không phải mô phỏng trường điện từ 3D toàn sóng.</p>
+</section>
+<section class="analysis-area" id="analysis-area"><div class="analysis-title"><div><span class="eyebrow">DETAILED ANALYSIS</span><h2>Phân tích kết quả</h2></div><span class="analysis-caption">Dữ liệu gốc từ engine V4</span></div>
+<div class="analysis-grid">
+<article class="panel"><div class="panel-head"><h3>Bản đồ pha · Phase Map</h3><select aria-label="Chọn UE để xem pha" id="side"><option value="R">UE-R</option><option value="T">UE-T</option></select></div><div id="phase-grid"></div><div class="phase-scale"></div><div class="range-label"><span>0°</span><span>180°</span><span>360°</span></div><p class="hint" id="element-info">Chọn một phần tử để xem pha và hệ số biên độ.</p></article>
+<article class="panel"><div class="panel-head"><h3>Phasor · Mặt phẳng phức</h3><span>Trước / sau dịch pha</span></div><canvas aria-label="Các vector đóng góp của phần tử trước và sau dịch pha" id="phasor"></canvas><p class="hint">Tối đa 64 vector lấy mẫu đều. Mờ: trước dịch pha; đậm: sau dịch pha.</p></article>
+</div>
+<div class="analysis-grid">
+<article class="panel"><div class="panel-head"><h3>So sánh công suất thu</h3><span>dBm · cao hơn là tốt hơn</span></div><div id="bars"></div><p class="hint">LOS bỏ vật cản. Các phương án khác dùng môi trường và pha đang chọn; TS dùng công suất trung bình.</p></article>
+<article class="panel"><div class="panel-head"><h3>Ảnh hưởng của số phần tử</h3><span id="sweep-label">STAR-RIS / ES</span></div><canvas aria-label="Biểu đồ công suất theo số phần tử RIS" id="chart"></canvas><p class="hint">Đường liền: có bề mặt. Đường đứt: đường trực tiếp trong cùng môi trường.</p></article>
+</div>
+</section>
+
+<footer>RIS / STAR-RIS V5 <span>Scientific Light • Giữ nguyên thuật toán Python V4 • Chạy trên máy cá nhân</span></footer>
+</div>
+<aside aria-label="Kết quả mô phỏng" class="results-column">
+<section class="results-shell"><div class="card-heading"><span class="card-icon">▥</span><div><h2>Kết quả mô phỏng</h2></div></div>
+<div class="metrics"><article class="metric-r"><div class="metric-head"><span class="dot r"></span> UE-R · Công suất thu</div><div class="power"><span id="power-r">—</span><small>dBm</small></div><div class="gain" id="gain-r">Đang tính…</div></article><article class="metric-t"><div class="metric-head"><span class="dot t"></span> UE-T · Công suất thu</div><div class="power"><span id="power-t">—</span><small>dBm</small></div><div class="gain" id="gain-t">Đang tính…</div></article></div>
+</section>
+<section class="results-shell route-shell"><div class="card-heading"><span class="card-icon">⌁</span><div><h2>Tuyến mạnh hơn</h2></div></div><div class="route-row"><span class="route-dot r"></span><div><small>UE-R</small><strong id="route-r">Đang tính…</strong></div></div><div class="route-row" id="route-t-row"><span class="route-dot t"></span><div><small>UE-T</small><strong id="route-t">Đang tính…</strong></div></div><p class="microcopy">Chỉ tô sáng tuyến có công suất lớn hơn, không đảm bảo tốc độ dữ liệu hoặc tối ưu mạng thực.</p></section>
+<section class="results-shell quick-facts"><div class="card-heading"><span class="card-icon">◷</span><div><h2>Thông tin hệ thống</h2></div></div><div class="fact-row"><span>Chế độ</span><strong id="fact-mode">STAR-RIS / ES</strong></div><div class="fact-row"><span>Số phần tử</span><strong id="fact-n">256</strong></div><div class="fact-row"><span>Tần số</span><strong id="fact-fc">3 GHz</strong></div><div class="fact-row"><span>Bước sóng λ</span><strong id="fact-lambda">—</strong></div><div class="fact-row"><span>Tỷ lệ R / T</span><strong id="fact-split">50% / 50%</strong></div></section>
+
+</aside>
+</div>
+</main>
+</body>
+</html>
